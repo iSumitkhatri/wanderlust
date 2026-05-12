@@ -66,7 +66,7 @@ function Home() {
 
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link to="/blog" style={{
-            background: '#0F6E56',
+            background: '#e53e3e',
             color: '#fff',
             padding: '14px 32px',
             borderRadius: '100px',
