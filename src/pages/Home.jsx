@@ -1,11 +1,37 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { supabase } from '../supabase'
 
 function Home() {
-  const posts = [
-    { emoji: '🏯', bg: '#E1F5EE', region: 'Japan · Asia', title: '48 hours in Kyoto', desc: "An honest guide to slowing down in Japan's most spiritual city.", date: 'Mar 2025', time: '6 min read' },
-    { emoji: '🏖️', bg: '#FAECE7', region: 'Portugal · Europe', title: 'Why I keep returning to Lisbon', desc: "The city that keeps pulling me back every single year.", date: 'Feb 2025', time: '4 min read' },
-    { emoji: '🏔️', bg: '#E6F1FB', region: 'South America', title: 'Trekking Patagonia on a budget', desc: "How I did the W Trek for under $500 all in.", date: 'Jan 2025', time: '8 min read' },
-  ]
+  const [posts, setPosts] = useState([])
+  const [email, setEmail] = useState('')
+  const [subscribed, setSubscribed] = useState(false)
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    async function fetchPosts() {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3)
+      if (error) console.error(error)
+      else setPosts(data)
+    }
+    fetchPosts()
+  }, [])
+
+  async function handleSubscribe() {
+    if (!email) return
+    const { error } = await supabase.from('subscribers').insert([{ email }])
+    if (error) {
+      setMessage('Already subscribed or invalid email!')
+    } else {
+      setSubscribed(true)
+      setMessage('Thanks for subscribing!')
+      setEmail('')
+    }
+  }
 
   return (
     <div>
@@ -125,13 +151,16 @@ function Home() {
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '20px'
         }}>
-          {posts.map((post, i) => (
-            <div key={i} style={{
+          {posts.map((post) => (
+            <Link to={`/post/${post.id}`} key={post.id} style={{
               background: '#fff',
               border: '0.5px solid #eee',
               borderRadius: '12px',
               overflow: 'hidden',
               cursor: 'pointer',
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'block',
               transition: 'transform 0.2s, box-shadow 0.2s'
             }}
               onMouseEnter={e => {
@@ -143,21 +172,18 @@ function Home() {
                 e.currentTarget.style.boxShadow = 'none'
               }}
             >
-              <div style={{
+              <img src={post.image} alt={post.title} style={{
+                width: '100%',
                 height: '180px',
-                background: post.bg,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '4.5rem'
-              }}>{post.emoji}</div>
+                objectFit: 'cover'
+              }} />
               <div style={{ padding: '1.25rem' }}>
                 <div style={{ fontSize: '11px', color: '#1D9E75', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontWeight: '500' }}>{post.region}</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '8px', lineHeight: '1.3' }}>{post.title}</div>
-                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.6', marginBottom: '12px' }}>{post.desc}</p>
+                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.6', marginBottom: '12px' }}>{post.description}</p>
                 <div style={{ fontSize: '12px', color: '#999' }}>{post.time} · {post.date}</div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -174,6 +200,8 @@ function Home() {
           <input
             type="email"
             placeholder="your@email.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
             style={{
               padding: '13px 20px',
               borderRadius: '100px',
@@ -184,7 +212,7 @@ function Home() {
               fontFamily: 'DM Sans, sans-serif'
             }}
           />
-          <button style={{
+          <button onClick={handleSubscribe} style={{
             background: '#1D9E75',
             color: '#fff',
             border: 'none',
@@ -193,8 +221,9 @@ function Home() {
             fontSize: '14px',
             fontWeight: '500',
             cursor: 'pointer'
-          }}>Subscribe →</button>
+          }}>{subscribed ? 'Subscribed! ✓' : 'Subscribe →'}</button>
         </div>
+        {message && <p style={{ color: '#9FE1CB', marginTop: '1rem', fontSize: '14px' }}>{message}</p>}
       </section>
     </div>
   )

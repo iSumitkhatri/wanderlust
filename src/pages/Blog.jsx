@@ -1,51 +1,94 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { supabase } from '../supabase'
+
 function Blog() {
-  const posts = [
-    { emoji: '🏯', bg: '#E1F5EE', region: 'Japan · Asia', title: '48 hours in Kyoto', desc: "An honest guide to slowing down in Japan's most spiritual city.", date: 'Mar 2025', time: '6 min read' },
-    { emoji: '🏖️', bg: '#FAECE7', region: 'Portugal · Europe', title: 'Why I keep returning to Lisbon', desc: "The city that keeps pulling me back every single year.", date: 'Feb 2025', time: '4 min read' },
-    { emoji: '🏔️', bg: '#E6F1FB', region: 'South America', title: 'Trekking Patagonia on a budget', desc: "How I did the W Trek for under $500 all in.", date: 'Jan 2025', time: '8 min read' },
-    { emoji: '🌿', bg: '#EAF3DE', region: 'Bali · Asia', title: "Finding quiet in Ubud's rice terraces", desc: "Escaping the crowds and finding real Bali.", date: 'Apr 2025', time: '5 min read' },
-    { emoji: '🗼', bg: '#FBEAF0', region: 'Paris · Europe', title: 'Paris without the cliches', desc: "The neighbourhoods the guidebooks skip.", date: 'Feb 2025', time: '5 min read' },
-    { emoji: '🏜️', bg: '#FAEEDA', region: 'Jordan · Middle East', title: 'Petra at sunrise: worth the 4am alarm', desc: "Yes, it really is that magical.", date: 'Jan 2025', time: '4 min read' },
-  ]
+  const [posts, setPosts] = useState([])
+  const [active, setActive] = useState('All')
+  const [loading, setLoading] = useState(true)
+
+  const categories = ['All', 'Asia', 'Europe', 'Americas', 'Middle East']
+
+  useEffect(() => {
+    async function fetchPosts() {
+      const { data, error } = await supabase.from('posts').select('*')
+      if (error) console.error(error)
+      else setPosts(data)
+      setLoading(false)
+    }
+    fetchPosts()
+  }, [])
+
+  const filtered = active === 'All' ? posts : posts.filter(p => p.category === active)
+
+  if (loading) return (
+    <div style={{ padding: '4rem 2.5rem', textAlign: 'center', color: '#666' }}>
+      Loading stories...
+    </div>
+  )
 
   return (
-    <div style={{ padding: '3rem 2.5rem' }}>
-      <h1 style={{
-        fontFamily: 'Georgia, serif',
-        fontSize: '2.5rem',
-        fontWeight: '700',
-        marginBottom: '0.5rem'
-      }}>All Stories</h1>
+    <div style={{ padding: '3rem 2.5rem', maxWidth: '1100px', margin: '0 auto' }}>
+      <h1 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>All Stories</h1>
       <p style={{ color: '#666', marginBottom: '2rem' }}>Honest travel writing from around the world</p>
 
+      {/* CATEGORY FILTER */}
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '2rem' }}>
+        {categories.map(cat => (
+          <button key={cat} onClick={() => setActive(cat)} style={{
+            padding: '8px 18px',
+            borderRadius: '100px',
+            border: '0.5px solid',
+            borderColor: active === cat ? '#1D9E75' : '#ddd',
+            background: active === cat ? '#1D9E75' : '#fff',
+            color: active === cat ? '#fff' : '#666',
+            fontSize: '13px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif',
+            transition: 'all 0.2s'
+          }}>{cat}</button>
+        ))}
+      </div>
+
+      {/* POSTS GRID */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '20px'
       }}>
-        {posts.map((post, i) => (
-          <div key={i} style={{
+        {filtered.map((post) => (
+          <Link to={`/post/${post.id}`} key={post.id} style={{
             background: '#fff',
             border: '0.5px solid #eee',
             borderRadius: '12px',
             overflow: 'hidden',
-            cursor: 'pointer'
-          }}>
-            <div style={{
-              height: '160px',
-              background: post.bg,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '4rem'
-            }}>{post.emoji}</div>
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-4px)'
+              e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.08)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            <img src={post.image} alt={post.title} style={{
+              width: '100%',
+              height: '200px',
+              objectFit: 'cover'
+            }} />
             <div style={{ padding: '1.25rem' }}>
-              <div style={{ fontSize: '11px', color: '#1D9E75', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>{post.region}</div>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', fontWeight: '700', marginBottom: '8px', lineHeight: '1.3' }}>{post.title}</div>
-              <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.6', marginBottom: '12px' }}>{post.desc}</p>
+              <div style={{ fontSize: '11px', color: '#1D9E75', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: '500' }}>{post.region}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '8px', lineHeight: '1.3' }}>{post.title}</div>
+              <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.6', marginBottom: '12px' }}>{post.description}</p>
               <div style={{ fontSize: '12px', color: '#999' }}>{post.time} · {post.date}</div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
