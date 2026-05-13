@@ -8,6 +8,7 @@ function Navbar({ dark, setDark }) {
     { label: 'Blog', to: '/blog' },
     { label: 'About', to: '/about' },
     { label: 'Contact', to: '/contact' },
+    { label: 'Sign Up', to: '/signup' },
   ]
 
   return (
