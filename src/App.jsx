@@ -9,6 +9,7 @@ import Contact from './pages/Contact'
 import Post from './pages/Post'
 import Login from './pages/Login'
 import Admin from './pages/Admin'
+import SignUp from './pages/SignUp'
 
 export default function App() {
   const [dark, setDark] = useState(false)
@@ -27,7 +28,7 @@ export default function App() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/post/:id" element={<Post />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
