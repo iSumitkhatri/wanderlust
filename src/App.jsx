@@ -30,6 +30,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/post/:id" element={<Post />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
         <Footer />
